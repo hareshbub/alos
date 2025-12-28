@@ -23,6 +23,26 @@ body{height:100vh;background:#0b0f0d;color:#fff;font-family:"Inter",sans-serif;d
 .menu-btn{font-size:1.4rem;cursor:pointer;}
 .brand{font-family:"Archivo Black",sans-serif;font-size:1.2rem;}
 
+/* LANGUAGE & LEARN MORE */
+.lang-learn{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.lang-btn{
+  width:30px;height:30px;
+  background:#fff;color:#000;
+  border-radius:5px;
+  display:flex;justify-content:center;align-items:center;
+  font-weight:bold;cursor:pointer;
+  font-family:"Inter",sans-serif;
+  font-size:0.9rem;
+}
+.learn-btn{
+  padding:4px 12px;
+  background:#1f4030;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:0.85rem;
+}
+
 /* CHAT AREA */
 .chat-area{
   flex:1;
@@ -75,16 +95,35 @@ body{height:100vh;background:#0b0f0d;color:#fff;font-family:"Inter",sans-serif;d
 .typewriter span{display:inline-block;overflow:hidden;white-space:nowrap;border-right:.1em solid #b9ffdc;animation:blink 0.8s infinite;}
 @keyframes blink{0%,100%{border-color:#b9ffdc;}50%{border-color:transparent;}}
 
+/* FOOTER */
+.footer{
+  background:#0f1512;
+  padding:8px 14px;
+  font-size:0.75rem;
+  text-align:center;
+  color:#b9ffdc;
+  font-family:"Inter",sans-serif;
+  line-height:1.4;
+  border-top:1px solid #1f2b24;
+}
+
 /* MOBILE */
-@media(max-width:600px){.msg{max-width:85%}}
+@media(max-width:600px){
+  .msg{max-width:85%}
+  .brand{font-size:1rem;}
+  .lang-btn{width:25px;height:25px;font-size:0.8rem;}
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="menu-btn">☰</div>
-  <div class="brand">Gemini Chat</div>
-  <div style="width:20px"></div>
+  <div class="brand typewriter"><span>Gemini Chat_</span></div>
+  <div class="lang-learn">
+    <div class="lang-btn" id="langBtn">E</div>
+    <button class="learn-btn" onclick="window.open('lal.ppt','_blank')">Learn More</button>
+  </div>
 </div>
 
 <div class="chat-area" id="chat">
@@ -96,10 +135,31 @@ body{height:100vh;background:#0b0f0d;color:#fff;font-family:"Inter",sans-serif;d
   <button class="send-btn" onclick="send()">Send</button>
 </div>
 
+<div class="footer typewriter" id="footer">
+<span>POWERED BY: GEMINI AI (favicon), FIREBASE (favicon) | Done by: G. HARESH, N SANTHOSHRAJ, A VERTISELVAN</span>
+</div>
+
 <script>
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
+const langBtn = document.getElementById("langBtn");
+let lang="en";
 
+// Typewriter function
+function typeWriter(element,text,callback){
+  let i=0;
+  element.textContent="";
+  function step(){
+    if(i<text.length){
+      element.textContent+=text[i];
+      i++;
+      setTimeout(step,30);
+    } else if(callback) callback();
+  }
+  step();
+}
+
+// Add message to chat
 function addMessage(text,type){
   const div = document.createElement("div");
   div.className = `msg ${type} typewriter`;
@@ -110,41 +170,50 @@ function addMessage(text,type){
   typeWriter(span,text);
 }
 
-function typeWriter(element,text){
-  let i=0;
-  element.textContent="";
-  function step(){
-    if(i<text.length){
-      element.textContent+=text[i];
-      i++;
-      setTimeout(step,30);
-    }
-  }
-  step();
-}
-
+// Send message
 function send(){
   const text = input.value.trim();
   if(!text) return;
   addMessage(text,"user");
   input.value = "";
-  addMessage("Gemini is processing your message…","gemini");
+  addMessage(lang==="en"?"Gemini is processing your message…":"ஜெமினி உங்கள் செய்தியை செயலாக்குகிறது…","gemini");
 
-  fetch("http://localhost:3000/api/gemini",{
+  fetch("https://naari-alpha.vercel.app/api/gemini",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({instruction:text})
   })
   .then(res=>res.json())
   .then(data=>{
-    addMessage(data.reply,"gemini");
+    const reply = lang==="en"?data.reply:translateToTamil(data.reply);
+    addMessage(reply,"gemini");
   })
   .catch(err=>{
-    addMessage("Error connecting to Gemini 3","gemini");
+    addMessage(lang==="en"?"Error connecting to Gemini 3":"ஜெமினி 3-இற்கு இணைக்கும்போது பிழை","gemini");
   });
 }
 
+// Language toggle
+langBtn.addEventListener("click",()=>{
+  if(lang==="en"){lang="ta"; langBtn.textContent="த";} 
+  else {lang="en"; langBtn.textContent="E";}
+});
+
+// Simple Tamil translation placeholder
+function translateToTamil(text){
+  // For demo, just returning original text. Replace with real translations if needed
+  return text;
+}
+
 input.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
+
+// Typewriter for topbar and footer
+const topBrand = document.querySelector(".brand span");
+typeWriter(topBrand,"Gemini Chat_");
+
+const footerSpan = document.querySelector("#footer span");
+typeWriter(footerSpan,"POWERED BY: GEMINI AI (favicon), FIREBASE (favicon) | Done by: G. HARESH, N SANTHOSHRAJ, A VERTISELVAN");
+
 </script>
 
 </body>
